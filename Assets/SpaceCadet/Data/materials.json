@@ -1,0 +1,592 @@
+{
+  "materials": [
+    {
+      "name": "Metal",
+      "color": [
+        0.8274509803921568,
+        0.8235294117647058,
+        0.8901960784313725
+      ],
+      "metallic": true,
+      "smoothness": 0.8999999761581421,
+      "opacity": 1.0,
+      "transparent": false
+    },
+    {
+      "name": "Metal Black",
+      "color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "metallic": true,
+      "smoothness": 0.8999999761581421,
+      "opacity": 1.0,
+      "transparent": false
+    },
+    {
+      "name": "Metal Dark",
+      "color": [
+        0.1411764705882353,
+        0.1411764705882353,
+        0.1411764705882353
+      ],
+      "metallic": true,
+      "smoothness": 0.8999999761581421,
+      "opacity": 1.0,
+      "transparent": false
+    },
+    {
+      "name": "Metal Red",
+      "color": [
+        0.5019607843137255,
+        0.0,
+        0.0
+      ],
+      "metallic": true,
+      "smoothness": 0.8999999761581421,
+      "opacity": 1.0,
+      "transparent": false
+    },
+    {
+      "name": "Plastic",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": false,
+      "smoothness": 0.10000000149011612,
+      "opacity": 0.8999999761581421,
+      "transparent": true
+    },
+    {
+      "name": "Plastic Blue",
+      "color": [
+        0.0,
+        0.2,
+        0.8
+      ],
+      "metallic": false,
+      "smoothness": 0.800000011920929,
+      "opacity": 1.0,
+      "transparent": false
+    },
+    {
+      "name": "Plastic Blue Transp",
+      "color": [
+        0.0,
+        0.2,
+        0.8
+      ],
+      "metallic": false,
+      "smoothness": 0.800000011920929,
+      "opacity": 0.949999988079071,
+      "transparent": true
+    },
+    {
+      "name": "Plastic Dark",
+      "color": [
+        0.0,
+        0.25098039215686274,
+        0.25098039215686274
+      ],
+      "metallic": false,
+      "smoothness": 0.800000011920929,
+      "opacity": 0.9990000128746033,
+      "transparent": true
+    },
+    {
+      "name": "Plastic Red",
+      "color": [
+        0.49019607843137253,
+        0.0,
+        0.0
+      ],
+      "metallic": false,
+      "smoothness": 0.800000011920929,
+      "opacity": 1.0,
+      "transparent": false
+    },
+    {
+      "name": "Plastic Red Transp",
+      "color": [
+        0.7764705882352941,
+        0.0,
+        0.0
+      ],
+      "metallic": false,
+      "smoothness": 0.800000011920929,
+      "opacity": 0.949999988079071,
+      "transparent": true
+    },
+    {
+      "name": "Plastic Transp",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": false,
+      "smoothness": 0.800000011920929,
+      "opacity": 0.9990000128746033,
+      "transparent": true
+    },
+    {
+      "name": "PlasticTrigger",
+      "color": [
+        0.18823529411764706,
+        0.6274509803921569,
+        0.7215686274509804
+      ],
+      "metallic": false,
+      "smoothness": 0.75,
+      "opacity": 0.0,
+      "transparent": false
+    },
+    {
+      "name": "Playfield",
+      "color": [
+        0.5019607843137255,
+        0.5019607843137255,
+        0.5019607843137255
+      ],
+      "metallic": false,
+      "smoothness": 1.0,
+      "opacity": 1.0,
+      "transparent": true
+    },
+    {
+      "name": "Rubber Black",
+      "color": [
+        0.03137254901960784,
+        0.03137254901960784,
+        0.03137254901960784
+      ],
+      "metallic": false,
+      "smoothness": 0.05000000074505806,
+      "opacity": 0.0,
+      "transparent": false
+    },
+    {
+      "name": "Rubber Red",
+      "color": [
+        0.5411764705882353,
+        0.0,
+        0.0
+      ],
+      "metallic": false,
+      "smoothness": 0.05000000074505806,
+      "opacity": 0.0,
+      "transparent": false
+    },
+    {
+      "name": "Rubber White",
+      "color": [
+        0.7529411764705882,
+        0.7529411764705882,
+        0.7529411764705882
+      ],
+      "metallic": false,
+      "smoothness": 0.05000000074505806,
+      "opacity": 0.0,
+      "transparent": false
+    },
+    {
+      "name": "Rubber Yellow",
+      "color": [
+        0.9058823529411765,
+        0.803921568627451,
+        0.09411764705882353
+      ],
+      "metallic": false,
+      "smoothness": 0.05000000074505806,
+      "opacity": 0.0,
+      "transparent": false
+    },
+    {
+      "name": "Wood",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": false,
+      "smoothness": 0.05000000074505806,
+      "opacity": 0.0,
+      "transparent": false
+    },
+    {
+      "name": "Metal0.8",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": true,
+      "smoothness": 0.6000000238418579,
+      "opacity": 1.0,
+      "transparent": true
+    },
+    {
+      "name": "Plastic White",
+      "color": [
+        0.9058823529411765,
+        0.9019607843137255,
+        0.9215686274509803
+      ],
+      "metallic": false,
+      "smoothness": 0.75,
+      "opacity": 0.0,
+      "transparent": false
+    },
+    {
+      "name": "Plastic with an image",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": false,
+      "smoothness": 0.75,
+      "opacity": 0.9990000128746033,
+      "transparent": true
+    },
+    {
+      "name": "Ramp Transparent1",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": false,
+      "smoothness": 0.0,
+      "opacity": 1.0,
+      "transparent": true
+    },
+    {
+      "name": "Plastic Yellow Transp",
+      "color": [
+        1.0,
+        1.0,
+        0.0
+      ],
+      "metallic": false,
+      "smoothness": 0.800000011920929,
+      "opacity": 0.949999988079071,
+      "transparent": true
+    },
+    {
+      "name": "Plastic with an image opacity ",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": false,
+      "smoothness": 0.10000000149011612,
+      "opacity": 1.0,
+      "transparent": false
+    },
+    {
+      "name": "Plastic Yellow bulb",
+      "color": [
+        0.34901960784313724,
+        0.34901960784313724,
+        0.0
+      ],
+      "metallic": false,
+      "smoothness": 0.0,
+      "opacity": 0.949999988079071,
+      "transparent": false
+    },
+    {
+      "name": "Plastic grey trans",
+      "color": [
+        0.22745098039215686,
+        0.22745098039215686,
+        0.22745098039215686
+      ],
+      "metallic": false,
+      "smoothness": 0.10000000149011612,
+      "opacity": 0.05000000074505806,
+      "transparent": true
+    },
+    {
+      "name": "Plastic White Transp",
+      "color": [
+        0.984313725490196,
+        0.984313725490196,
+        0.984313725490196
+      ],
+      "metallic": false,
+      "smoothness": 0.75,
+      "opacity": 0.9998999834060669,
+      "transparent": true
+    },
+    {
+      "name": "TransBlue",
+      "color": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "metallic": true,
+      "smoothness": 1.0,
+      "opacity": 0.800000011920929,
+      "transparent": true
+    },
+    {
+      "name": "TransClear",
+      "color": [
+        0.7529411764705882,
+        0.7529411764705882,
+        0.7529411764705882
+      ],
+      "metallic": true,
+      "smoothness": 1.0,
+      "opacity": 0.4000000059604645,
+      "transparent": true
+    },
+    {
+      "name": "TransGreen",
+      "color": [
+        0.0,
+        0.5019607843137255,
+        0.0
+      ],
+      "metallic": true,
+      "smoothness": 1.0,
+      "opacity": 0.800000011920929,
+      "transparent": true
+    },
+    {
+      "name": "TransOrange",
+      "color": [
+        0.615686274509804,
+        0.10980392156862745,
+        0.0
+      ],
+      "metallic": true,
+      "smoothness": 1.0,
+      "opacity": 0.800000011920929,
+      "transparent": true
+    },
+    {
+      "name": "TransRed",
+      "color": [
+        0.49019607843137253,
+        0.0,
+        0.0
+      ],
+      "metallic": true,
+      "smoothness": 1.0,
+      "opacity": 0.800000011920929,
+      "transparent": true
+    },
+    {
+      "name": "TransYellow",
+      "color": [
+        1.0,
+        0.8352941176470589,
+        0.043137254901960784
+      ],
+      "metallic": true,
+      "smoothness": 1.0,
+      "opacity": 0.800000011920929,
+      "transparent": true
+    },
+    {
+      "name": "Lamps Glass",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": false,
+      "smoothness": 0.5,
+      "opacity": 0.0,
+      "transparent": true
+    },
+    {
+      "name": "Default",
+      "color": [
+        0.0,
+        0.0,
+        0.1568627450980392
+      ],
+      "metallic": false,
+      "smoothness": 0.5,
+      "opacity": 0.0,
+      "transparent": false
+    },
+    {
+      "name": "Metal1",
+      "color": [
+        0.7058823529411765,
+        0.7058823529411765,
+        0.7058823529411765
+      ],
+      "metallic": true,
+      "smoothness": 0.6000000238418579,
+      "opacity": 1.0,
+      "transparent": false
+    },
+    {
+      "name": "Metal0.2",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": true,
+      "smoothness": 0.4000000059604645,
+      "opacity": 1.0,
+      "transparent": false
+    },
+    {
+      "name": "Opacity80",
+      "color": [
+        0.7843137254901961,
+        0.7843137254901961,
+        0.7843137254901961
+      ],
+      "metallic": true,
+      "smoothness": 0.25,
+      "opacity": 0.25,
+      "transparent": true
+    },
+    {
+      "name": "Peg",
+      "color": [
+        0.49019607843137253,
+        0.0,
+        0.0
+      ],
+      "metallic": true,
+      "smoothness": 0.75,
+      "opacity": 0.8500000238418579,
+      "transparent": true
+    },
+    {
+      "name": "Plastic Cobalt Blue",
+      "color": [
+        0.0,
+        0.11764705882352941,
+        0.41568627450980394
+      ],
+      "metallic": true,
+      "smoothness": 0.75,
+      "opacity": 0.0,
+      "transparent": false
+    },
+    {
+      "name": "Plastic with an image1",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": false,
+      "smoothness": 0.75,
+      "opacity": 1.0,
+      "transparent": true
+    },
+    {
+      "name": "Plastic with opaque image",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": false,
+      "smoothness": 0.75,
+      "opacity": 1.0,
+      "transparent": false
+    },
+    {
+      "name": "PlasticTrigger1",
+      "color": [
+        0.18823529411764706,
+        0.6274509803921569,
+        0.7215686274509804
+      ],
+      "metallic": false,
+      "smoothness": 0.10000000149011612,
+      "opacity": 0.9900000095367432,
+      "transparent": true
+    },
+    {
+      "name": "Playfield1",
+      "color": [
+        0.7058823529411765,
+        0.7058823529411765,
+        0.7058823529411765
+      ],
+      "metallic": false,
+      "smoothness": 1.0,
+      "opacity": 0.0,
+      "transparent": false
+    },
+    {
+      "name": "Red Rubber",
+      "color": [
+        0.7176470588235294,
+        0.0,
+        0.0
+      ],
+      "metallic": false,
+      "smoothness": 0.05000000074505806,
+      "opacity": 0.0,
+      "transparent": false
+    },
+    {
+      "name": "Peg Red",
+      "color": [
+        0.49019607843137253,
+        0.0,
+        0.0
+      ],
+      "metallic": true,
+      "smoothness": 0.75,
+      "opacity": 0.8500000238418579,
+      "transparent": true
+    },
+    {
+      "name": "redpeglit",
+      "color": [
+        0.4980392156862745,
+        0.4980392156862745,
+        0.4980392156862745
+      ],
+      "metallic": false,
+      "smoothness": 1.0,
+      "opacity": 0.9998999834060669,
+      "transparent": true
+    },
+    {
+      "name": "Plastic Ramp Purple",
+      "color": [
+        0.21176470588235294,
+        0.1568627450980392,
+        0.3568627450980392
+      ],
+      "metallic": false,
+      "smoothness": 1.0,
+      "opacity": 1.0,
+      "transparent": false
+    },
+    {
+      "name": "Plastic Yellow",
+      "color": [
+        1.0,
+        1.0,
+        0.0
+      ],
+      "metallic": false,
+      "smoothness": 0.800000011920929,
+      "opacity": 1.0,
+      "transparent": false
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 349fc7ef159e4e9da4f4b17bdbc0212b, type: 3}
+  m_Name: Campaign
+  m_EditorClassIdentifier: Assembly-CSharp::DesktopMinesweeper.CampaignLayout
+  sweepBoard: {fileID: 11400000, guid: cb2bc1fa4e424099ae65272586b61003, type: 2}
+  platformStart: {x: 0, y: 6}
+  platformGoal: {x: 19, y: 1}
+  bossRounds:
+  - board: {fileID: 11400000, guid: 700a9497c12142c4907d5d213d5987eb, type: 2}
+    seconds: 16
+    damageToInterrupt: 4
+  - board: {fileID: 11400000, guid: ea31ec5a00c14cf2ba08169fdf0112d9, type: 2}
+    seconds: 19
+    damageToInterrupt: 5
+  bossHealth: 16
+  playerHealth: 3
+  damagePerMine: 1

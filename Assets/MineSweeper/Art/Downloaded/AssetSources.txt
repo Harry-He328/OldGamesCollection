@@ -1,0 +1,20 @@
+Desktop/Wallpaper.jpg — tommyvideo, Pixabay Content License.
+https://pixabay.com/illustrations/blue-ray-lights-abstract-background-1772970/
+https://pixabay.com/service/license-summary/
+
+Desktop/Computer.png, Desktop/RecycleBin.png, Desktop/Notepad.png — Oxygen icons copyright KDE and licensed under GNU LGPL version 3 or later.
+https://develop.kde.org/frameworks/oxygen-icons/
+https://github.com/KDE/oxygen-icons
+
+Minesweeper/ — Minesweeper Tile Set by eugeneloza, CC0 1.0.
+https://opengameart.org/content/minesweeper-tile-set
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Desktop/Bliss.jpg — Bliss, photograph by Charles O'Rear, acquired by Microsoft for Windows XP. Redistribution permission has not been verified.
+https://ucrarts.ucr.edu/education/bliss/
+https://archive.org/details/theoriginalfilesofsomewindowswallpapers
+
+ClassicPixel/MinesweeperTiles_Free — Infi76, Minesweeper Tiles: Free Pixel Sample.
+https://infi76.itch.io/minesweeper-tiles-free
+Author license allows use and modification in free or commercial games/apps, but prohibits redistribution of standalone assets. Original LICENSE.txt is included with the pack. The author labels the graphics AI Assisted.
+Selected for the classic gray cell, flag, mine and face artwork. Number labels are rendered independently by the game.

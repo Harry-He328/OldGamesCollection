@@ -1,0 +1,6 @@
+Pinball icon
+Source: https://www.svgrepo.com/svg/70693/pinball
+Download: https://www.svgrepo.com/show/70693/pinball.svg
+License: CC0, as listed by SVG Repo on the source page.
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+SVG artwork is unchanged; PNG is a 128x128 rasterization for Unity.
