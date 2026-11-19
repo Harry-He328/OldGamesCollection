@@ -175,7 +175,7 @@ namespace DesktopMinesweeper
 
         private void Update()
         {
-            if (OldGames.Collection.DesktopPinballApp.OwnsKeyboard) return;
+            if (OldGames.Collection.DesktopPinballApp.OwnsKeyboard || OldGames.Breakout.BreakoutApp.OwnsKeyboard) return;
             if (Game == null) return;
             switch (stage)
             {

@@ -12,6 +12,7 @@
 - `Assets/MineSweeper/Scripts/Minesweeper/Levels/ArchivedPlatform`：保留的跳跃模拟和关卡适配代码。当前流程没有进入它的调用。
 - `Assets/MineSweeper/Scripts/Minesweeper/UI`：棋盘与格子显示、特效、关卡 HUD，以及仍然共享的控制器和流程分发。
 - `Assets/SpaceCadet`：弹球本体，包括物理、计分、目标、挡板和镜头。
+- `Assets/Breakout`：打砖块。`Scripts/Core` 是不依赖 UI 的规则与关卡数据，`Scripts/Presentation` 负责接入桌面（运行时克隆弹球的窗口外壳、任务栏按钮和快捷方式，不改场景）和绘制。详见 `Assets/Breakout/README.md`。
 
 现有脚本都属于默认的 Assembly-CSharp 程序集，没有按模块拆分程序集。
 

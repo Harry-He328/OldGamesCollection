@@ -11,3 +11,7 @@ SPACE: charge/release launcher; A/D or Shift: flippers; P: pause pinball only; F
 The original table prefab is retained; the runtime desktop copy is Assets/SpaceCadet/Resources/DesktopPinballTable.prefab. Basic rules remain approximate. No gameplay/automated tests run, per request.
 
 The pinball window is authored in the desktop scene by cloning the Minesweeper window shell and task button. It uses the same border images, TMP font, title-button components, menu, drag handles and resize handles. Only the game controller and board view are replaced. DesktopAppShortcut is shared by both games; the Pinball shortcut selects the pinball application. No custom runtime-drawn window frame is created. Icon slots remain empty pending suitable artwork.
+
+## Breakout
+
+Double-click the Breakout desktop shortcut. Its window, task button and shortcut are runtime clones of the Pinball shell (no scene changes). Holding the window drags it in 0.25x bullet time, which drains an energy ring. Three levels, each cleared by hitting one starred goal: inside the window, on the desktop, and a file you can drag out with the mouse. See Assets/Breakout/README.md.
