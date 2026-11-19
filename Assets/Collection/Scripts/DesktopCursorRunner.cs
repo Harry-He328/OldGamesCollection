@@ -18,7 +18,13 @@ namespace OldGames.Collection
     /// The cursor is the mouse. While it is a body the real pointer is hidden and mouse input is
     /// swallowed; entering a shortcut turns it back into the real pointer, so the game is played
     /// with the mouse. Closing or minimising that window, or pressing a move key while the desktop
-    /// has the keyboard, drops the pointer back onto the desktop as a body.
+    /// has the keyboard, turns the pointer back into a body, which flies back to the shortcut it
+    /// went in through (so the mouse can never carry it across the level).
+    ///
+    /// E leaves the body: it stays where it is as a faint ghost (still standing, still riding
+    /// whatever it stands on) and the real pointer comes out of its tip, free to move and resize
+    /// windows and drag icons. E again, or a move key, sends the pointer back into the body.
+    /// Shortcuts never open from a mouse double-click: only the body pressing Down opens them.
     ///
     /// Coordinates here are desktop-local, origin at the bottom-left corner, y up.
     /// </summary>
@@ -36,23 +42,24 @@ namespace OldGames.Collection
         const float JumpSpeed = 880;      // apex about 175 units: floor to the lowest icon row, or up onto a window from the tower
         const float RollRate = 15;        // rad/s while a direction is held: about 250 units/s
         const float RollDrive = 160;      // rad/s² towards RollRate
-        const float AirMax = 260, AirAccel = 1400, AirDrag = 500, AirSpin = 11;
-        const float IconHalfWidth = 24;   // platform on top of an icon's picture
+        const float AirMax = 260, AirAccel = 1400, AirDrag = 1600, AirSpin = 11;
+        const float IconInset = 4;        // the whole icon box (picture and label) is the platform
         const float ContactEps = .6f;
 
-        // Starting layout on the desktop icon grid (column, row), ordered like the games:
-        // Breakout (game 1) is one jump from the Start button; Minesweeper (game 2) is at the top
-        // of a zigzag tower in the left columns, next to Notepad, clear of the middle where windows
-        // open; Pinball (game 3) sits alone on the far right, reached across the top of an open
-        // window (or by moving things around).
+        // Starting layout on the desktop icon grid (column, row), ordered like the games.
+        // Breakout (game 1) is one jump from the Start button, at the foot of a short zigzag tower
+        // in the left columns (clear of the middle, where windows open). Minesweeper (game 2) is
+        // alone in the far top-right corner: no jump reaches it. Once Breakout is cleared its
+        // window can be moved and resized freely, and the way across is to make it a bridge.
+        // Pinball (game 3) floats above the middle, just over the top of the Minesweeper window.
         static readonly (string name, int col, int row)[] Layout =
         {
             ("Breakout Shortcut", 1, 6),
             ("Recycle Bin", 0, 5),
             ("Notepad", 1, 4),
-            ("Minesweeper Shortcut", 2, 3),
-            ("Computer", 1, 2),
-            ("3D Pinball Shortcut", 10, 1),
+            ("Computer", 2, 3),
+            ("3D Pinball Shortcut", 5, 0),
+            ("Minesweeper Shortcut", 99, 0),   // clamped to the last column
         };
         static readonly Vector2 FirstCell = new Vector2(54, -49), CellSpacing = new Vector2(108, 87);
 
@@ -64,12 +71,21 @@ namespace OldGames.Collection
             public GameObject launch;   // shortcut opened by Down
         }
 
-        enum Mode { Ground, Air, Enter, Become, Mouse }
+        enum Mode { Ground, Air, Enter, Become, Mouse, Return }
 
         RectTransform desktop, layer, body, shadow, startButton;
         Image bodyImage, shadowImage, blocker;
         Vector2 tipLocal;               // arrow tip, relative to the centroid at scale 1 and angle 0
         DesktopWindow enteredWindow;
+        RectTransform entryIcon;
+        Vector2 returnFrom;
+        float returnTime, returnScale;
+        bool spirit;                    // out of the body: the real pointer is free, the body waits
+        RectTransform soul;             // small pointer flying back into the body
+        Image soulImage;
+        Vector2 soulFrom;
+        float soulTime = 1;
+        readonly List<Behaviour> shortcutHandlers = new List<Behaviour>();
         float becomeTime;
         Vector2 becomeFrom;
         float becomeAngle;
@@ -185,6 +201,8 @@ namespace OldGames.Collection
             Sprite sprite = MakeArrow();
             shadow = MakeImage("Cursor Shadow", sprite, new Color(0, 0, 0, .3f), out shadowImage);
             body = MakeImage("Cursor", sprite, Color.white, out bodyImage);
+            soul = MakeImage("Cursor Soul", sprite, new Color(1, 1, 1, .85f), out soulImage);
+            soul.gameObject.SetActive(false);
         }
 
         RectTransform MakeImage(string name, Sprite sprite, Color color, out Image image)
@@ -232,6 +250,10 @@ namespace OldGames.Collection
                 jumpHeld = kb.spaceKey.isPressed || kb.upArrowKey.isPressed || kb.wKey.isPressed;
                 down = kb.downArrowKey.wasPressedThisFrame || kb.sKey.wasPressedThisFrame;
             }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // Testing shortcut: Ctrl+Shift+M opens Minesweeper and hands over the real pointer at once.
+            if (kb != null && kb.ctrlKey.isPressed && kb.shiftKey.isPressed && kb.mKey.wasPressedThisFrame) OpenMinesweeperNow();
+#endif
             if (mode == Mode.Mouse)
             {
                 bool moved = keys && kb != null && (kb.leftArrowKey.wasPressedThisFrame || kb.aKey.wasPressedThisFrame ||
@@ -240,6 +262,17 @@ namespace OldGames.Collection
                 if (moved || closed) { DropFromMouse(); jumpPressed = false; }
                 else { SyncMouse(); return; }
             }
+
+            // E: out of the body and back. A move key also brings the pointer home.
+            if (mode == Mode.Ground || mode == Mode.Air)
+            {
+                bool toggle = keys && kb != null && kb.eKey.wasPressedThisFrame;
+                bool move = keys && kb != null && (kb.leftArrowKey.wasPressedThisFrame || kb.aKey.wasPressedThisFrame ||
+                                                   kb.rightArrowKey.wasPressedThisFrame || kb.dKey.wasPressedThisFrame || jumpPressed);
+                if (!spirit && toggle) LeaveBody();
+                else if (spirit && (toggle || move)) { BackToBody(); jumpPressed = false; }
+            }
+            if (spirit) { dir = 0; jumpPressed = false; jumpHeld = false; down = false; }
             if (jumpPressed) jumpBuffer = .12f;
 
             // Fixed small steps, so the tumble feels the same at any frame rate.
@@ -256,6 +289,7 @@ namespace OldGames.Collection
                     case Mode.Air: StepAir(dt, dir, jumpHeld); break;
                     case Mode.Enter: StepEnter(dt); break;
                     case Mode.Become: StepBecome(dt); break;
+                    case Mode.Return: StepReturn(dt); break;
                 }
                 if (mode == Mode.Mouse) break;
                 if ((mode == Mode.Ground || mode == Mode.Air) && jumpBuffer > 0 && (mode == Mode.Ground || clock - lastGrounded < .08f))
@@ -272,13 +306,59 @@ namespace OldGames.Collection
 
         void SyncMouse()
         {
+            if (mode != Mode.Ground && mode != Mode.Air) spirit = false;
             bool mouse = mode == Mode.Mouse;
             var director = DialogueDirector.Instance;
             bool talking = director != null && director.IsPlaying;   // the pet's lines are clicked through
-            Cursor.visible = mouse || talking;
-            blocker.gameObject.SetActive(!mouse && !talking);
+            Cursor.visible = mouse || talking || spirit;
+            blocker.gameObject.SetActive(!mouse && !talking && !spirit);
             body.gameObject.SetActive(!mouse);
             shadow.gameObject.SetActive(!mouse);
+            bodyImage.color = new Color(1, 1, 1, spirit ? .4f : 1);
+            shadowImage.color = new Color(0, 0, 0, spirit ? .08f : .3f);
+        }
+
+        Vector2 BodyTip() => pos + RotateVec(tipLocal * scale, angle);
+
+        void LeaveBody()
+        {
+            spirit = true;
+            WarpPointer(BodyTip());
+            Play(pop, 1.4f, .5f);
+        }
+
+        void BackToBody()
+        {
+            spirit = false;
+            var mouse = Mouse.current;
+            soulFrom = BodyTip();
+            if (mouse != null &&
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(desktop, mouse.position.ReadValue(), null, out Vector2 local))
+                soulFrom = local - desktop.rect.min;
+            soulTime = 0;
+            Play(pop, .9f, .5f);
+        }
+
+        void WarpPointer(Vector2 at)
+        {
+            var mouse = Mouse.current;
+            if (mouse == null) return;
+            Vector3 world = desktop.TransformPoint(at + desktop.rect.min);
+            mouse.WarpCursorPosition(RectTransformUtility.WorldToScreenPoint(null, world));
+        }
+
+        void RenderSoul()
+        {
+            if (soulTime >= 1) { if (soul.gameObject.activeSelf) soul.gameObject.SetActive(false); return; }
+            soulTime = Mathf.Min(1, soulTime + Time.unscaledDeltaTime / .22f);
+            float e = soulTime * soulTime;
+            float ps = PointerScale();
+            // The soul's tip travels from the pointer to the body's tip.
+            Vector2 tip = Vector2.Lerp(soulFrom, BodyTip(), e);
+            soul.gameObject.SetActive(true);
+            soul.anchoredPosition = tip - tipLocal * ps;
+            soul.localEulerAngles = Vector3.zero;
+            soul.localScale = Vector3.one * ps;
         }
 
         // Size the body shrinks to before it turns into the real pointer (roughly the OS arrow).
@@ -304,13 +384,7 @@ namespace OldGames.Collection
 
             // Hand over to the real pointer, right where the arrow's tip is.
             angle = 0;
-            Vector2 tip = pos + tipLocal * scale;
-            var mouse = Mouse.current;
-            if (mouse != null)
-            {
-                Vector3 world = desktop.TransformPoint(tip + desktop.rect.min);
-                mouse.WarpCursorPosition(RectTransformUtility.WorldToScreenPoint(null, world));
-            }
+            WarpPointer(pos + tipLocal * scale);
             mode = Mode.Mouse;
             hasGround = false;
             spin = 0;
@@ -319,24 +393,57 @@ namespace OldGames.Collection
 
         void DropFromMouse()
         {
-            // The pointer falls off the mouse and becomes a body again, tip where the pointer was.
+            // The pointer becomes a body again where it is, then flies back to the shortcut it went in through.
             Vector2 tip = pos + tipLocal * scale;
             var mouse = Mouse.current;
             if (mouse != null &&
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(desktop, mouse.position.ReadValue(), null, out Vector2 local))
                 tip = local - desktop.rect.min;
-            tip.x = Mathf.Clamp(tip.x, 4, desktop.rect.width - 20);
-            tip.y = Mathf.Clamp(tip.y, TaskbarHeight + 40, desktop.rect.height - 2);
-            scale = PointerScale();
+            tip.x = Mathf.Clamp(tip.x, 0, desktop.rect.width);
+            tip.y = Mathf.Clamp(tip.y, TaskbarHeight, desktop.rect.height);
+            returnScale = PointerScale();
+            scale = returnScale;
             angle = 0;
             pos = tip - tipLocal * scale;
+            returnFrom = pos;
+            returnTime = 0;
             vel = Vector2.zero;
-            spin = Random.value < .5f ? 1.5f : -1.5f;
-            mode = Mode.Air;
+            spin = 0;
+            mode = Mode.Return;
             hasGround = false;
             enteredWindow = null;
             jumpBuffer = 0;
             Play(pop, .8f, .5f);
+        }
+
+        Vector2 ReturnPoint()
+        {
+            if (entryIcon != null && entryIcon.gameObject.activeInHierarchy)
+            {
+                Rect r = RectIn(entryIcon);
+                return new Vector2(r.center.x, r.yMax + 30);
+            }
+            Vector2 start = startButton != null ? RectIn(startButton).center : new Vector2(54, 19);
+            return new Vector2(start.x + 40, TaskbarHeight + 40);
+        }
+
+        void StepReturn(float dt)
+        {
+            returnTime += dt;
+            float d = Vector2.Distance(returnFrom, ReturnPoint());
+            float duration = Mathf.Clamp(d / 1600f, .25f, .6f);
+            float t = Mathf.Clamp01(returnTime / duration);
+            float e = t * t * (3 - 2 * t);
+            pos = Vector2.Lerp(returnFrom, ReturnPoint(), e) + new Vector2(0, Mathf.Sin(t * Mathf.PI) * Mathf.Min(120, d * .25f));
+            scale = Mathf.Lerp(returnScale, 1, e);
+            angle = -e * Mathf.PI * 2;   // one flip on the way
+            if (t < 1) return;
+            angle = 0;
+            scale = 1;
+            vel = new Vector2(0, 150);
+            spin = Random.value < .5f ? 1.5f : -1.5f;
+            mode = Mode.Air;
+            Play(thud, 1.2f, .4f);
         }
 
         bool HasKeyboard()
@@ -522,10 +629,30 @@ namespace OldGames.Collection
 
         // ---------------------------------------------------------------- shortcuts
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        void OpenMinesweeperNow()
+        {
+            var icon = desktop.Find("Minesweeper Shortcut");
+            if (icon == null) return;
+            Open(icon.gameObject);
+            Rescan();
+            var game = desktop.GetComponentInChildren<DesktopMinesweeper.MinesweeperController>(true);
+            enteredWindow = game != null ? game.GetComponentInParent<DesktopWindow>(true) : null;
+            entryIcon = (RectTransform)icon;
+            spirit = false;
+            mode = Mode.Mouse;
+            hasGround = false;
+            spin = 0;
+            vel = Vector2.zero;
+            SyncMouse();
+        }
+#endif
+
         void BeginEnter(GameObject target)
         {
             mode = Mode.Enter;
             enterTarget = target;
+            entryIcon = target.transform as RectTransform;
             enterTime = 0;
             enterFrom = pos;
             spin = 0;
@@ -576,12 +703,15 @@ namespace OldGames.Collection
                 pointerPress = target,
             };
             es.SetSelectedGameObject(target);
+            GateShortcuts(true);
             ExecuteEvents.Execute(target, e, ExecuteEvents.pointerClickHandler);
+            GateShortcuts(false);
         }
 
         void UpdateHighlight()
         {
-            GameObject want = mode == Mode.Ground && hasGround ? ground.launch : null;
+            // Every icon lights up while the cursor stands on it, shortcut or not.
+            GameObject want = mode == Mode.Ground && hasGround && ground.key is DesktopIcon icon ? icon.gameObject : null;
             if (want == highlighted) return;
             var es = EventSystem.current;
             if (es != null)
@@ -632,6 +762,18 @@ namespace OldGames.Collection
             foreach (Transform child in desktop)
                 if (child.TryGetComponent(out DesktopWindow window)) windows.Add(window);
             if (pet == null) pet = FindFirstObjectByType<DesktopPet>(FindObjectsInactive.Include);
+
+            // Shortcuts open only through the body (Down on the icon), never from a mouse double-click.
+            shortcutHandlers.Clear();
+            foreach (var icon in icons)
+                foreach (var b in icon.GetComponents<Behaviour>())
+                    if (b is IPointerClickHandler && !(b is DesktopIcon)) shortcutHandlers.Add(b);
+            GateShortcuts(false);
+        }
+
+        void GateShortcuts(bool open)
+        {
+            foreach (var b in shortcutHandlers) if (b != null && b.enabled != open) b.enabled = open;
         }
 
         void CollectPlatforms()
@@ -652,15 +794,14 @@ namespace OldGames.Collection
             foreach (var icon in icons)
             {
                 if (icon == null || !icon.gameObject.activeInHierarchy) continue;
-                RectTransform picture = icon.transform.Find("Icon") as RectTransform;
-                Rect r = RectIn(picture != null ? picture : (RectTransform)icon.transform);
+                Rect r = RectIn((RectTransform)icon.transform);
                 Vector2 top = new Vector2(r.center.x, r.yMax);
                 bool covered = false;
                 foreach (var w in windowRects) if (w.Contains(top)) { covered = true; break; }
                 if (covered) continue;   // an icon hidden under a window is not a platform
                 platforms.Add(new Platform
                 {
-                    key = icon, left = r.center.x - IconHalfWidth, right = r.center.x + IconHalfWidth, top = r.yMax,
+                    key = icon, left = r.xMin + IconInset, right = r.xMax - IconInset, top = r.yMax,
                     droppable = true, launch = icon.GetComponent<IPointerClickHandler>() != null ? icon.gameObject : null,
                 });
             }
@@ -698,6 +839,7 @@ namespace OldGames.Collection
             shadow.localEulerAngles = body.localEulerAngles;
             shadow.localScale = body.localScale;
             if ((mode == Mode.Ground || mode == Mode.Air) && scale < 1) scale = Mathf.MoveTowards(scale, 1, Time.unscaledDeltaTime * 4);
+            RenderSoul();
             // The layer has its own sorting canvas, so it draws above windows without touching sibling order.
         }
 

@@ -10,6 +10,7 @@ Open `Assets/Scenes/SampleScene.unity`, press Play, then double-click the **Brea
 - The window may be dragged partly off screen (up to 60% left, right and bottom, 30% at the top), so every spot on the desktop can be reached. The taskbar stays on top of it, and open task buttons are packed left to right after Start.
 - Each level has a goal marked with a gold star. Hit it once and the level is cleared. Other bricks and folders are optional: they give points.
 - Click or press Space to launch. F2 or **New game** restarts.
+- Testing shortcut (Editor and development builds only): **Ctrl+Shift+B** clears all three levels at once, from anywhere, and finishes the game.
 - There are no text hints. Before launch the ball breathes and an arrow bobs above it. On level 1, once the ball is in play, a ghost cursor grabs the playfield and slides a ghost outline of the window sideways, until the player drags the window for the first time. Draggable icons highlight on hover, like XP icons.
 
 Levels:
@@ -18,7 +19,7 @@ Levels:
 2. **Outside the Window**: the goal is the starred *My Documents* folder near the top of the desktop, with the indestructible System32 folder right below it. Pull the window up and angle the ball past System32, or, if the player thinks of it, drag the folder itself into the window. Nothing says folders can be dragged.
 3. **Deep Storage**: *Treasure.txt* is sealed in a vault of triple-strength bricks. Digging in works but is slow. The file itself can be dragged with the mouse, at no energy cost: drop it on the playfield and it moves with the window, or drop it on the desktop and it stays there. If the player has not touched it after 12 s, the file gives a small shake every 5 s.
 
-Clearing level 3 shows **ALL CLEAR**.
+Clearing level 3 shows **ALL CLEAR**, and the game is finished for good: the screen stays frozen, New game, clicks and Space no longer restart it, and the window gives up the keyboard. From then on it is an ordinary window that moves, resizes (down to 170x120) and maximises freely, with no energy or bullet time. On the desktop it is the bridge to Minesweeper (see Assets/Collection/README.md).
 
 Brick types inside the window: normal (1–3 hits), gold star target, grey steel (never breaks), green energy (+30% ring on top of the bounce), red bomb (destroys its neighbours, chains), purple dashed ghost (solid only in bullet time). Some rows can slide left and right.
 

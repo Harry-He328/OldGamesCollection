@@ -166,6 +166,7 @@ namespace DesktopMinesweeper
                 var view = Instantiate(cellPrefab, grid.transform);
                 view.name = $"Cell_{cell.X}_{cell.Y}";
                 view.Bind(Game, cell, Act);
+                view.BindPreview(PreviewChord);
                 views.Add(view);
             }
             Game.Changed += Refresh;
@@ -196,6 +197,21 @@ namespace DesktopMinesweeper
         }
 
         private CellView ViewAt(Vector2Int p) => views[p.y * Game.Board.Width + p.x];
+
+        // Sinks the covered cells around a held chord, the way the classic game shows what it will open.
+        private void PreviewChord(CellData cell, bool on)
+        {
+            if (Game == null || stage == Stage.Platform || petTransition) on = false;
+            for (int dy = -1; dy <= 1; dy++)
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    int x = cell.X + dx, y = cell.Y + dy;
+                    if (x < 0 || y < 0 || x >= Game.Board.Width || y >= Game.Board.Height) continue;
+                    int index = y * Game.Board.Width + x;
+                    if (index < views.Count && views[index] != null)
+                        views[index].SetNeighborPressed(on && !views[index].Data.IsRevealed);
+                }
+        }
 
         private void Act(CellData cell, CellAction action)
         {

@@ -287,6 +287,16 @@ namespace OldGames.Breakout
             return emptied;
         }
 
+        /// <summary>Skips straight to the end: all levels cleared. A testing shortcut.</summary>
+        public void Win()
+        {
+            Dragging = false;
+            Clearing = 0;
+            Level = LevelCount;
+            State = Phase.Won;
+            Stuck = true;
+        }
+
         void NextLevel()
         {
             Dragging = false;

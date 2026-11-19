@@ -87,7 +87,17 @@ namespace DesktopMinesweeper
             int marked = 0;
             foreach (var neighbor in GetNeighbors(board, cell))
                 if (CountsForChord(neighbor)) marked++;
-            if (marked != cell.AdjacentMines) return;
+            if (marked != cell.AdjacentMines)
+            {
+                // Easy flag: when every covered neighbour must be a mine, the number marks them all.
+                int covered = 0;
+                foreach (var neighbor in GetNeighbors(board, cell))
+                    if (!neighbor.IsRevealed && !neighbor.IsFlagged) covered++;
+                if (covered > 0 && marked + covered == cell.AdjacentMines)
+                    foreach (var neighbor in GetNeighbors(board, cell))
+                        if (!neighbor.IsRevealed && !neighbor.IsFlagged) ToggleFlag(board, neighbor);
+                return;
+            }
             foreach (var neighbor in GetNeighbors(board, cell))
             {
                 Reveal(board, neighbor);

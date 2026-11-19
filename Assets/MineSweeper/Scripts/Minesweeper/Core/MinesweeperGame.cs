@@ -20,6 +20,13 @@ namespace DesktopMinesweeper
             Changed?.Invoke();
         }
 
+        private int CountRevealed()
+        {
+            int count = 0;
+            foreach (var cell in Board.Cells) if (cell.IsRevealed) count++;
+            return count;
+        }
+
         public MinesweeperGame(BoardData board, MinesweeperRules rules, Random random, bool fixedMines = false)
         {
             Board = board ?? throw new ArgumentNullException(nameof(board));
@@ -47,8 +54,12 @@ namespace DesktopMinesweeper
                     rules.Reveal(Board, cell);
                     break;
                 case CellAction.Chord:
-                    if (State == GameState.Ready) return;
+                    // A random board has no mines before the first reveal, but a fixed board can show
+                    // authored clues from the start, and those chord like any other number.
+                    if (State == GameState.Ready && !fixedMines) return;
+                    int opened = CountRevealed();
                     rules.Chord(Board, cell);
+                    if (State == GameState.Ready && CountRevealed() != opened) State = GameState.Playing;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action));

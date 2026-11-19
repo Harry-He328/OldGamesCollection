@@ -110,6 +110,7 @@ namespace DesktopMinesweeper
             {
                 if (window == owner || !observed.Add(window)) continue;
                 var marker = window.GetComponentInChildren<DesktopObservationArea>(true);
+                if (marker != null && marker.Excluded) continue;
                 RectTransform area = marker != null ? marker.Area : window.transform.Find("Content") as RectTransform;
                 if (area == null) continue;
 

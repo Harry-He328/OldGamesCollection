@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace DesktopMinesweeper
@@ -27,6 +28,10 @@ namespace DesktopMinesweeper
         private bool platformTile;
         private bool usedMine;
         private Action<CellData, CellAction> act;
+        private Action<CellData, bool> preview;
+        // Both buttons together (or the middle button) make a chord: it acts once, on the first release.
+        private bool chordGesture, chordDone;
+        private bool neighborPressed;
         public CellData Data => data;
         public bool IsConfigured => label != null;
         public Sprite CoveredSprite => coveredSprite;
@@ -51,13 +56,51 @@ namespace DesktopMinesweeper
             Render();
         }
 
+        /// <summary>Receives chord press feedback: the cell and whether its neighbours should look pressed.</summary>
+        public void BindPreview(Action<CellData, bool> onPreview) => preview = onPreview;
+
+        public void SetNeighborPressed(bool on)
+        {
+            if (neighborPressed == on) return;
+            neighborPressed = on;
+            Render();
+        }
+
         public void OnPointerClick(PointerEventData eventData)
         {
             if (game == null) return;
-            if (eventData.button == PointerEventData.InputButton.Right)
-                act(data, CellAction.ToggleFlag);
+            if (chordGesture)
+            {
+                if (!chordDone) { chordDone = true; act(data, CellAction.Chord); }
+                if (!AnyButtonHeld()) chordGesture = false;
+                return;
+            }
+            // Any click on an opened number chords; elsewhere right flags and left reveals.
+            if (IsSecondary(eventData))
+                act(data, data.IsRevealed ? CellAction.Chord : CellAction.ToggleFlag);
             else if (eventData.button == PointerEventData.InputButton.Left)
                 act(data, data.IsRevealed ? CellAction.Chord : CellAction.Reveal);
+        }
+
+        // On a Mac, Control-click is the usual secondary click.
+        private static bool IsSecondary(PointerEventData eventData) =>
+            eventData.button == PointerEventData.InputButton.Right ||
+            eventData.button == PointerEventData.InputButton.Left && MacControlHeld();
+
+        private static bool MacControlHeld() =>
+            (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer) &&
+            Keyboard.current != null && Keyboard.current.ctrlKey.isPressed;
+
+        private static bool BothButtonsHeld()
+        {
+            var mouse = Mouse.current;
+            return mouse != null && mouse.leftButton.isPressed && mouse.rightButton.isPressed;
+        }
+
+        private static bool AnyButtonHeld()
+        {
+            var mouse = Mouse.current;
+            return mouse != null && (mouse.leftButton.isPressed || mouse.rightButton.isPressed || mouse.middleButton.isPressed);
         }
 
         public void MarkMineUsed() => usedMine = true;
@@ -76,13 +119,31 @@ namespace DesktopMinesweeper
         }
 
         public void OnPointerEnter(PointerEventData eventData) { hovered = true; Render(); }
-        public void OnPointerExit(PointerEventData eventData) { hovered = false; pressed = false; Render(); }
-        public void OnPointerDown(PointerEventData eventData)
+        public void OnPointerExit(PointerEventData eventData)
         {
-            pressed = eventData.button == PointerEventData.InputButton.Left;
+            hovered = false;
+            pressed = false;
+            preview?.Invoke(data, false);
             Render();
         }
-        public void OnPointerUp(PointerEventData eventData) { pressed = false; Render(); }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            bool chord = BothButtonsHeld() || eventData.button == PointerEventData.InputButton.Middle;
+            if (!chord) chordDone = false;
+            chordGesture = chord;
+            pressed = eventData.button == PointerEventData.InputButton.Left && !chord && !MacControlHeld();
+            // As in the classic game, holding a chord (or pressing an opened number) sinks the covered neighbours.
+            if (chord || data.IsRevealed && data.AdjacentMines > 0) preview?.Invoke(data, true);
+            Render();
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            pressed = false;
+            preview?.Invoke(data, false);
+            Render();
+        }
 
         public void Render()
         {
@@ -90,7 +151,7 @@ namespace DesktopMinesweeper
             bool showMine = !usedMine && data.HasMine && (data.IsRevealed || game.State == GameState.Lost);
             bool wrongFlag = game.State == GameState.Lost && data.IsFlagged && !data.HasMine;
             bool finished = game.State == GameState.Won || game.State == GameState.Lost;
-            bool showPressed = pressed && hovered && !finished && !data.IsFlagged;
+            bool showPressed = (pressed && hovered || neighborPressed) && !finished && !data.IsFlagged;
             Sprite sprite = data.IsRevealed || showMine || showPressed ? revealedSprite : coveredSprite;
             Sprite symbolSprite = showMine ? mineSprite : data.IsFlagged ? flagSprite : null;
             background.sprite = sprite;

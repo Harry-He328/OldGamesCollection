@@ -48,6 +48,11 @@ namespace OldGames.Breakout
         bool focused, hasPrev;
         Vector2 prevOrigin, lastOrigin;
         Vector2 dragStart;
+        // Plain window moves and resizes, once the game is finished.
+        int windowPointer = int.MinValue;
+        Vector2Int windowEdges;
+        Vector2 windowGrab;
+        Rect windowInitial;
         Rect dragInitial;
         int dragPointer = int.MinValue;
         Vector2 pointerDown;   // last pointer position, desktop coordinates (y down)
@@ -136,6 +141,8 @@ namespace OldGames.Breakout
 
             frame = (RectTransform)clone.transform;
             shell = clone.GetComponent<DesktopWindow>();
+            // Breakout's window is a game of its own, never a view onto Minesweeper's hidden board.
+            clone.AddComponent<DesktopObservationArea>().Exclude();
 
             // Window title and icon.
             foreach (var t in clone.GetComponentsInChildren<TMP_Text>(true))
@@ -156,11 +163,16 @@ namespace OldGames.Breakout
 
             // The window only moves while bullet time has energy, so the shell's own drag and
             // resize handles become Breakout drag surfaces.
+            // Their resize edges are kept: once the game is cleared they work as normal handles again.
+            var edgesField = typeof(WindowDragHandle).GetField("resizeEdges", BindingFlags.Instance | BindingFlags.NonPublic);
             foreach (var handle in clone.GetComponentsInChildren<WindowDragHandle>(true))
             {
                 var go = handle.gameObject;
+                var edges = edgesField != null ? (Vector2Int)edgesField.GetValue(handle) : Vector2Int.zero;
                 DestroyImmediate(handle);
-                go.AddComponent<BreakoutDragSurface>().app = this;
+                var surface = go.AddComponent<BreakoutDragSurface>();
+                surface.app = this;
+                surface.edges = edges;
             }
             shell.SizeLocked = true;
 
@@ -371,7 +383,24 @@ namespace OldGames.Breakout
 
         public void NewGame()
         {
+            if (Finished) return;   // cleared for good: the window is only a window now
             sim?.NewGame();
+        }
+
+        /// <summary>True once all levels are cleared. The game then stays on its ALL CLEAR screen
+        /// for good, and the window is an ordinary window: it moves and resizes freely (no energy,
+        /// no bullet time) and no longer takes the keyboard.</summary>
+        public bool Finished { get; private set; }
+
+        void Finish()
+        {
+            Finished = true;
+            if (sim.Dragging) sim.EndDrag();
+            dragPointer = int.MinValue;
+            EndHold(); holdPointer = int.MinValue;
+            shell.SizeLocked = false;
+            shell.Configure(new Vector2(170, 120), taskButton);
+            OwnsKeyboard = false;
         }
 
         /// <summary>Jumps to a level (1-based). Handy for testing from the console or a debugger.</summary>
@@ -381,14 +410,24 @@ namespace OldGames.Breakout
         {
             focused = true;
             frame.SetAsLastSibling();
-            OwnsKeyboard = true;
+            OwnsKeyboard = !Finished;
         }
 
         // ---------------------------------------------------------------- input
 
-        internal void Press(PointerEventData e)
+        internal void Press(PointerEventData e, Vector2Int edges = default)
         {
             Focus();
+            if (Finished)
+            {
+                if (TryPoint(e.position, e.pressEventCamera, out windowGrab))
+                {
+                    windowPointer = e.pointerId;
+                    windowEdges = edges;
+                    windowInitial = shell.GetWindowRect();
+                }
+                return;
+            }
             if (sim.State != BreakoutSimulation.Phase.Play) { sim.NewGame(); return; }
             if (sim.Stuck) { sim.Launch(); return; }
             if (!TryPoint(e.position, e.pressEventCamera, out dragStart)) return;
@@ -401,6 +440,12 @@ namespace OldGames.Breakout
 
         internal void DragTo(PointerEventData e)
         {
+            if (Finished)
+            {
+                if (e.pointerId == windowPointer && TryPoint(e.position, e.pressEventCamera, out Vector2 at))
+                    shell.Drag(windowInitial, at - windowGrab, windowEdges);
+                return;
+            }
             if (!sim.Dragging || e.pointerId != dragPointer) return;
             if (TryPoint(e.position, e.pressEventCamera, out Vector2 p))
                 MoveWindow(dragInitial, p - dragStart);
@@ -483,6 +528,7 @@ namespace OldGames.Breakout
 
         internal void Release(PointerEventData e)
         {
+            if (e.pointerId == windowPointer) windowPointer = int.MinValue;
             if (e.pointerId != dragPointer) return;
             dragPointer = int.MinValue;
             sim.EndDrag();
@@ -503,7 +549,7 @@ namespace OldGames.Breakout
                 EventSystem.current.RaycastAll(e, hits);
                 if (hits.Count > 0) focused = hits[0].gameObject.transform.IsChildOf(frame) || hits[0].gameObject.transform.IsChildOf(layer);
             }
-            OwnsKeyboard = visible && focused;
+            OwnsKeyboard = visible && focused && !Finished;
             if (mouse != null && TryPoint(mouse.position.ReadValue(), null, out Vector2 p))
                 pointerDown = LocalToDown(p);
         }
@@ -515,6 +561,15 @@ namespace OldGames.Breakout
             if (frame == null || sim == null) return;
             ArrangeTaskButtons();
             bool visible = frame.gameObject.activeInHierarchy;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // Testing shortcut: Ctrl+Shift+B clears every level at once, from anywhere.
+            var cheat = Keyboard.current;
+            if (!Finished && cheat != null && cheat.ctrlKey.isPressed && cheat.shiftKey.isPressed && cheat.bKey.wasPressedThisFrame)
+            {
+                sim.Win();
+                Finish();
+            }
+#endif
             UpdateFocus(visible);
             if (layer.gameObject.activeSelf != visible) layer.gameObject.SetActive(visible);
             if (!visible)
@@ -526,6 +581,15 @@ namespace OldGames.Breakout
                 return;
             }
             KeepLayerAboveWindow();
+
+            if (!Finished && sim.State == BreakoutSimulation.Phase.Won) Finish();
+            if (Finished)
+            {
+                // Frozen on the ALL CLEAR screen; the board just follows the window.
+                PlaceDeskItems(ContentOrigin());
+                Render(Mathf.Min(Time.unscaledDeltaTime, 1 / 30f), 0);
+                return;
+            }
 
             var keys = Keyboard.current;
             if (keys != null && OwnsKeyboard)
@@ -816,7 +880,7 @@ namespace OldGames.Breakout
                 bool won = sim.State == BreakoutSimulation.Phase.Won;
                 overTitle.text = won ? "ALL CLEAR!" : "GAME OVER";
                 overTitle.color = won ? new Color(1f, .85f, .35f) : new Color(1f, .55f, .45f);
-                overScore.text = won ? $"Score {sim.Score:N0}  -  lives left {sim.Lives}\nClick or press Space to play again"
+                overScore.text = won ? $"Score {sim.Score:N0}  -  lives left {sim.Lives}"
                                      : $"Score {sim.Score:N0}  -  reached level {sim.Level}\nClick or press Space to play again";
             }
 
@@ -1034,7 +1098,8 @@ namespace OldGames.Breakout
         IInitializePotentialDragHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         public BreakoutApp app;
-        public void OnPointerDown(PointerEventData e) { if (e.button == PointerEventData.InputButton.Left && app != null) app.Press(e); }
+        public Vector2Int edges;   // resize edges of the shell handle this replaced (zero: move)
+        public void OnPointerDown(PointerEventData e) { if (e.button == PointerEventData.InputButton.Left && app != null) app.Press(e, edges); }
         public void OnPointerUp(PointerEventData e) { if (e.button == PointerEventData.InputButton.Left && app != null) app.Release(e); }
         public void OnInitializePotentialDrag(PointerEventData e) => e.useDragThreshold = false;
         public void OnBeginDrag(PointerEventData e) { }
